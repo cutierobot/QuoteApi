@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QuoteApiTest")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c4fd964e7d5360396271934fdabfbee75cd74da")]
 [assembly: System.Reflection.AssemblyProductAttribute("QuoteApiTest")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QuoteApiTest")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
