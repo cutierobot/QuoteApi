@@ -1,8 +1,8 @@
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using QuoteApi;
 
-// what is this \/????
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,6 +14,19 @@ builder.Services.AddSwaggerGen(options =>
         var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     }
+);
+
+// please see below Microsoft LEARN as to what this does
+// https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/
+// QuoteDatabase is coming from appsettings.development.json
+// TODO: don't store hardcoded password and stuff here in QuoteDatabase connectionString be more secure
+var connectionString =
+    builder.Configuration.GetConnectionString("QuoteDatabase")
+    ?? throw new InvalidOperationException("Connection string" + "'QuoteDatabase' not found.");
+
+builder.Services.AddDbContext<QuoteDbContext>(
+    options =>
+        options.UseSqlServer(connectionString)
 );
 
 
@@ -94,7 +107,6 @@ app.MapGet("/quote{uuid}", (string uuid) =>
         Summary = "Retrieves the quote that matches the id",
         // Parameters = ["id"]
     });
-
 
 
 app.MapPost("/setQuote", (Quote quote) =>
