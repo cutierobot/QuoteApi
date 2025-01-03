@@ -8,7 +8,7 @@
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "/Users/mikaelasomerville/RiderProjects/QuoteApiTest/QuoteApiTest/QuoteApiTest.csproj",
-        "projectName": "QuoteApiTest",
+        "projectName": "QuoteApi",
         "projectPath": "/Users/mikaelasomerville/RiderProjects/QuoteApiTest/QuoteApiTest/QuoteApiTest.csproj",
         "packagesPath": "/Users/mikaelasomerville/.nuget/packages/",
         "outputPath": "/Users/mikaelasomerville/RiderProjects/QuoteApiTest/QuoteApiTest/obj/",
@@ -48,6 +48,22 @@
               "version": "[8.0.11, )"
             },
             "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.0, )"
             },

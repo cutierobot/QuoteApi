@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace QuoteApiTest;
-
-public class QuoteDB : DbContext
+namespace QuoteApi
 {
-    public DbSet<Quote> Quotes { get; set; }
-
-    public QuoteDB(DbContextOptions<QuoteDB> options)
+    public class QuoteDb : DbContext
     {
-        // record Quote(string Uuid, string Text, string Author, string Category, DateOnly? Date)
+        public DbSet<Quote> Quotes { get; set; }
+
+        public QuoteDb(DbContextOptions<QuoteDb> options)
+        {
+            // record Quote(string Uuid, string Text, string Author, string Category, DateOnly? Date)
+        }
     }
 }
