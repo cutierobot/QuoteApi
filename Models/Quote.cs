@@ -1,10 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace QuoteApi.Models
 {
     public class Quote
     {
-        public string Uuid { get; set; }
-        public string QuoteText { get; set; }
-        public string Author { get; set; }
+        [Key]
+        public required string Uuid { get; set; }
+        public required string QuoteText { get; set; }
+        public required string Author { get; set; }
         public string? Category { get; set; }
         public string? DateOfQuote { get; set; }
     }

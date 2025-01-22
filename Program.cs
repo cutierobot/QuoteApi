@@ -1,7 +1,11 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using QuoteApi;
+using QuoteApi.Interfaces;
+using QuoteApi.Models;
+using QuoteApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,7 @@ builder.Services.AddSwaggerGen(options =>
         // using System.Reflection;
         var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+        options.SupportNonNullableReferenceTypes();
     }
 );
 
@@ -28,6 +33,8 @@ builder.Services.AddDbContext<QuoteDbContext>(
     options =>
         options.UseSqlServer(connectionString)
 );
+
+builder.Services.AddScoped<IQuoteService, QuoteService>();
 
 
 var app = builder.Build();
@@ -87,26 +94,31 @@ app.MapGet("/myTurn", () =>
         Summary = "This is fucking documentation you dig :)"
     });
 
-
-app.MapGet("/quote{uuid}", (string uuid) =>
+/**
+ * In order to return stuatus codes and define status codes iin swagger need to provide either "TypedResults" or "Results".
+ * More info on this can be found here
+ * https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/responses?view=aspnetcore-9.0#typedresults-vs-results
+ *
+ * TypedResults seems to be the preferred way so that is what I will be doing. To use TypedResults correctly I must use Task<>.
+ * So this is where Task<> comes from, it's so we can use TypeResults for the swagger
+ * @statusCode 200
+ * @StatusCode 404
+ */
+app.MapGet("/quote{uuid}", Results<Ok<Quote>, NotFound>(string uuid, IQuoteService quoteService) =>
     {
-        // return new WeatherForecast
-        // (
-        //     // creates a Date using today's date and adding one day.
-        //     DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-        //     // random number from -20 - 55
-        //     Random.Shared.Next(-20, 55),
-        //     // randomly choose a option from the summaries array
-        //     summaries[Random.Shared.Next(summaries.Length)]
-        // );
-        return "The quote id is " + uuid;
+        var result = quoteService.GetQuote(uuid);
+        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+
     })
+    // .Produces<Quote>()
     .WithName("GetQuoteWithID")
     .WithOpenApi(x => new OpenApiOperation(x)
     {
         Summary = "Retrieves the quote that matches the id",
+        Description = "Takes in a UUID and will return the first matching Quote structure found"
         // Parameters = ["id"]
     });
+
 
 
 app.MapPost("/setQuote", (Quote quote) =>
@@ -138,11 +150,5 @@ namespace QuoteApi
     record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
     {
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-    }
-
-
-    public record Quote(string Uuid, string QuoteText, string Author, string Category, DateOnly? DateOfQuote)
-    {
-        public string Display => $"{QuoteText} - {Author} {DateOfQuote}";
     }
 }
