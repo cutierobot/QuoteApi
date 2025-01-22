@@ -1,6 +1,10 @@
 using System.Reflection;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using QuoteApi;
 using QuoteApi.Interfaces;
@@ -121,16 +125,59 @@ app.MapGet("/quote{uuid}", Results<Ok<Quote>, NotFound>(string uuid, IQuoteServi
 
 
 
-app.MapPost("/setQuote", (Quote quote) =>
+app.MapPost("/setQuote", async ( [FromBody]CreateQuote createQuote, IQuoteService quoteService) =>
     {
-        // return "The quote id is " + id;
-        return "This is where we set the Quote record to be in the db";
+        var result = await quoteService.AddQuote(createQuote);
+        return Results.Created($"/quote/{result.Uuid}", result);
     })
     .WithName("SetQuote")
-    .WithOpenApi(x => new OpenApiOperation(x)
+    // .WithOpenApi(x => new OpenApiOperation(x)
+    // {
+    //     Summary = "Takes Quote class and send to DBcontext to be set to db",
+    //     // Parameters = ["id"]
+    // });
+    .WithOpenApi(openApi =>
     {
-        Summary = "Takes Quote class and send to DBcontext to be set to db",
-        // Parameters = ["id"]
+        // var scheme = new OpenApiSchema()
+        // {
+        //     Type = typeof(Quote).ToString(),
+        //     Example = new OpenApiObject()
+        //     {
+        //         ["Uuid"] = new OpenApiString("38a60aba-f38e-4d77-8588-b7938765c826"),
+        //         ["QuoteText"] = new OpenApiString("Hello, beutiful"),
+        //         ["Author"] = new OpenApiString("Astarion"),
+        //         ["Category"] = new OpenApiString("Game"),
+        //         ["DateOfQuote"] = new OpenApiString("")
+        //     }
+        // };
+        // openApi.RequestBody = new()
+        // {
+        //     Content = new Dictionary<string, OpenApiMediaType>()
+        //     {
+        //         ["application/json"] = new()
+        //         {
+        //              Schema = scheme
+        //         }
+        //     }
+        // };
+        // openApi.RequestBody = new OpenApiRequestBody
+        // {
+        //     Content = new Dictionary<string, OpenApiMediaType>
+        //     {
+        //         {
+        //             "application/json", new OpenApiMediaType
+        //             {
+        //                 Schema = new OpenApiSchema
+        //                 {
+        //                     Type = "object" 
+        //                 }
+        //             }
+        //         }
+        //     },
+        //     Description = "JSON"
+        // };
+
+        return openApi;
     });
 
 app.Run();
