@@ -1,10 +1,7 @@
 using System.Reflection;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using QuoteApi;
 using QuoteApi.Interfaces;
@@ -27,7 +24,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // please see below Microsoft LEARN as to what this does
 // https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/
-// QuoteDatabase is coming from appsettings.development.json
+// QuoteDatabase is coming from app settings.development.json
 // TODO: don't store hardcoded password and stuff here in QuoteDatabase connectionString be more secure
 var connectionString =
     builder.Configuration.GetConnectionString("QuoteDatabase")
@@ -52,51 +49,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
 // https://learn.microsoft.com/en-us/dotnet/api/microsoft.openapi.models.openapioperation
 
-
-app.MapGet("/weatherforecast", () =>
-    {
-        // loop from 1 - 5,
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    // creates a Date using today's date and adding one day.
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    // random number from -20 - 55
-                    Random.Shared.Next(-20, 55),
-                    // randomly choose a option from the summaries array
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
-
-
-app.MapGet("/myTurn", () =>
-    {
-        return new WeatherForecast
-        (
-            // creates a Date using today's date and adding one day.
-            DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-            // random number from -20 - 55
-            Random.Shared.Next(-20, 55),
-            // randomly choose a option from the summaries array
-            summaries[Random.Shared.Next(summaries.Length)]
-        );
-    })
-    .WithName("MyTurn")
-    .WithOpenApi(x => new OpenApiOperation(x)
-    {
-        Summary = "This is fucking documentation you dig :)"
-    });
 
 /**
  * In order to return stuatus codes and define status codes iin swagger need to provide either "TypedResults" or "Results".
@@ -108,11 +62,10 @@ app.MapGet("/myTurn", () =>
  * @statusCode 200
  * @StatusCode 404
  */
-app.MapGet("/quote{uuid}", Results<Ok<Quote>, NotFound>(string uuid, IQuoteService quoteService) =>
+app.MapGet("/quote{uuid}", async(string uuid, IQuoteService quoteService) =>
     {
-        var result = quoteService.GetQuote(uuid);
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
-
+        var result = await quoteService.GetQuote(uuid);
+        return result == null ? Results.NotFound(): Results.Ok(result);
     })
     // .Produces<Quote>()
     .WithName("GetQuoteWithID")
@@ -131,71 +84,61 @@ app.MapPost("/setQuote", async ( [FromBody]CreateQuote createQuote, IQuoteServic
         return Results.Created($"/quote/{result.Uuid}", result);
     })
     .WithName("SetQuote")
-    // .WithOpenApi(x => new OpenApiOperation(x)
-    // {
-    //     Summary = "Takes Quote class and send to DBcontext to be set to db",
-    //     // Parameters = ["id"]
-    // });
-    .WithOpenApi(openApi =>
+    .WithOpenApi(x => new OpenApiOperation(x)
     {
-        // var scheme = new OpenApiSchema()
-        // {
-        //     Type = typeof(Quote).ToString(),
-        //     Example = new OpenApiObject()
-        //     {
-        //         ["Uuid"] = new OpenApiString("38a60aba-f38e-4d77-8588-b7938765c826"),
-        //         ["QuoteText"] = new OpenApiString("Hello, beutiful"),
-        //         ["Author"] = new OpenApiString("Astarion"),
-        //         ["Category"] = new OpenApiString("Game"),
-        //         ["DateOfQuote"] = new OpenApiString("")
-        //     }
-        // };
-        // openApi.RequestBody = new()
-        // {
-        //     Content = new Dictionary<string, OpenApiMediaType>()
-        //     {
-        //         ["application/json"] = new()
-        //         {
-        //              Schema = scheme
-        //         }
-        //     }
-        // };
-        // openApi.RequestBody = new OpenApiRequestBody
-        // {
-        //     Content = new Dictionary<string, OpenApiMediaType>
-        //     {
-        //         {
-        //             "application/json", new OpenApiMediaType
-        //             {
-        //                 Schema = new OpenApiSchema
-        //                 {
-        //                     Type = "object" 
-        //                 }
-        //             }
-        //         }
-        //     },
-        //     Description = "JSON"
-        // };
+        Summary = "Set a quote",
+        Description = "Set's a quote to the database for storage and retrieval for other API calls"
+        // Parameters = ["id"]
+    });
+    // .WithOpenApi(openApi =>
+    // {
+    //     return openApi;
+    // });
 
-        return openApi;
+app.MapGet("/quote/{author}", async (string author, IQuoteService quoteService) =>
+    {
+        var result = await quoteService.GetAuthorQuote(author);
+        if (result.Count > 0)
+        {
+            return result;
+        }
+        else
+        {
+            throw new KeyNotFoundException("No quotes found matching your author");
+        }
+        // return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+
+    })
+    .WithName("GetAuthorQuote")
+    .WithOpenApi(x => new OpenApiOperation(x)
+    {
+        Summary = "Retrieves All authors quotes",
+        Description = "Retrieves all quotes from the database matching author provided"
+        // Parameters = ["id"]
+    });
+    
+app.MapGet("/quote/{uuid}/display", async (string uuid, IQuoteService quoteService) =>
+    {
+        var result = await quoteService.GetQuote(uuid);
+        return result == null ? Results.NotFound(): Results.Ok(quoteService.FormatQuote(result));
+    })
+    .WithName("GetDisplayAuthorQuote")
+    .WithOpenApi(x => new OpenApiOperation(x)
+    {
+        Summary = "Retrieve quote and format it",
+        Description = "Retrieves a quote using the uuid and format its in expected quote format"
+    });
+
+app.MapPut("quote/update/{uuid}", async (string uuid, IQuoteService quoteService) =>
+    {
+        throw new NotImplementedException();
+    })
+    .WithName("UpdateQuote")
+    .WithTags("Not Implemented")
+    .WithOpenApi(x => new OpenApiOperation(x)
+    {
+        Summary = "Update a single quote",
+        Description = "Update a single quote using the uuid"
     });
 
 app.Run();
-
-namespace QuoteApi
-{
-    /*
-     * Record is a new data type. Is a Class or Struct for special specific data models. Tells compiler that things under
-     * the 'record' modifier are useful for storing data.
-     * Records by defualt are immutable (for this dummy that means think const, can't be changed once set.)
-     * Value-Based Equality - for this dummy that means "bee" === 'bee', compares by values and not by reference. Im thinking
-     *  back to C with pointers shit.
-     *
-     * there is Record and record class types. the thing we are seeing below I think ig a Record Class.
-     *
-     */
-    record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-    {
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-    }
-}
