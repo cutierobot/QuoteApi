@@ -3,6 +3,7 @@ using QuoteApi.Models;
 namespace QuoteApi.Interfaces;
 
 // Dependency Injection Abstraction part
+// Dependency Inversion Principle
 // think the blueprint
 public interface IQuoteService
 {

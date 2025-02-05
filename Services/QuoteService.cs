@@ -8,6 +8,8 @@ using QuoteApi.Models;
 namespace QuoteApi.Services;
 
 // dbcontext used here and passed to app.MapGet and stuff
+
+// Service layer, handles buisness logic
 public class QuoteService: IQuoteService
 {
     private readonly QuoteDbContext _context;
@@ -100,7 +102,7 @@ public class QuoteService: IQuoteService
 
     private string FormatDateOfQuote(DateTime dateOfQuote)
     {
-        // TODO: still need to properly handle timeZOnes and shit
+        // TODO: still need to properly handle timeZones and shit
         return dateOfQuote!.ToString("dd/MM/yyyy") ?? "";
     }
 }

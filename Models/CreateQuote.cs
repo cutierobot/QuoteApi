@@ -1,5 +1,7 @@
 namespace QuoteApi.Models;
 
+// representation of the Quote SQL Table and all it's columns for EntityFramework to use when trying to CREATE a quote
+
 public class CreateQuote
 {
     

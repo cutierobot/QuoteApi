@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace QuoteApi.Models
 {
+    // This is not a DTO
+    // this is a Model, it is the representation of the Quote SQL Table and all it's columns for EntityFramework to use
+    // Please see this Medium post
     public class Quote
     {
         [Key]

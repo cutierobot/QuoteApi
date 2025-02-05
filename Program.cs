@@ -51,9 +51,9 @@ app.UseHttpsRedirection();
 
 // https://learn.microsoft.com/en-us/dotnet/api/microsoft.openapi.models.openapioperation
 
-
+// this is kinda the controller layer sorta as well, due to minimal API
 /**
- * In order to return stuatus codes and define status codes iin swagger need to provide either "TypedResults" or "Results".
+ * In order to return stuatus codes and define status codes in swagger need to provide either "TypedResults" or "Results".
  * More info on this can be found here
  * https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/responses?view=aspnetcore-9.0#typedresults-vs-results
  *
@@ -116,6 +116,29 @@ app.MapGet("/quote/{author}", async (string author, IQuoteService quoteService) 
         Description = "Retrieves all quotes from the database matching author provided"
         // Parameters = ["id"]
     });
+
+app.MapGet("/quote/{author}/display", async (string author, IQuoteService quoteService) =>
+    {
+        var result = await quoteService.GetAuthorQuote(author);
+        if (result.Count > 0)
+        {
+            return result;
+        }
+        else
+        {
+            throw new KeyNotFoundException("No quotes found matching your author");
+        }
+        // return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+
+    })
+    .WithName("GetAuthorQuoteFormat")
+    .WithTags("Not Implemented")
+    .WithOpenApi(x => new OpenApiOperation(x)
+    {
+        Summary = "Retrieves All authors quotes, but be formatted",
+        Description = "Retrieves all quotes from the database matching author provided, but formatted"
+        // Parameters = ["id"]
+    });
     
 app.MapGet("/quote/{uuid}/display", async (string uuid, IQuoteService quoteService) =>
     {
@@ -139,6 +162,31 @@ app.MapPut("quote/update/{uuid}", async (string uuid, IQuoteService quoteService
     {
         Summary = "Update a single quote",
         Description = "Update a single quote using the uuid"
+    });
+
+
+ app.MapDelete("quote/{uuid}", async (string uuid, IQuoteService quoteService) =>
+     {
+         throw new NotImplementedException();
+     })
+    .WithName("DeleteQuote")
+    .WithTags("Not Implemented")
+    .WithOpenApi(x => new OpenApiOperation(x)
+    {
+        Summary = "Delete a single quote",
+        Description = "Delete a single quote using the uuid"
+    });
+
+app.MapGet("/quote/find{text}", async (string text, IQuoteService quoteService) =>
+    {
+        throw new NotImplementedException();
+    })
+    .WithName("FindQuotes")
+    .WithTags("Not Implemented")
+    .WithOpenApi(x => new OpenApiOperation(x)
+    {
+        Summary = "Find quotes matching provided text",
+        Description = "Retrieves a array of quotes matching provided text"
     });
 
 app.Run();
