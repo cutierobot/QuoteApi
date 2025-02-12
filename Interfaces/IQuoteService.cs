@@ -8,11 +8,19 @@ namespace QuoteApi.Interfaces;
 public interface IQuoteService
 {
     // this one is only for testing, delete after added other ones
-    Task<Quote?> GetQuote(string uuid);
+    Task<QuoteDTO?> GetQuote(string uuid);
     // QuoteResponse AddQuote(CreateQuote quote);
-    Task<Quote> AddQuote(CreateQuote quote);
+    Task<QuoteDTO> AddQuote(CreateQuote quote);
     
-    Task<List<Quote>> GetAuthorQuote(string author);
+    Task<List<QuoteDTO>> GetAuthorQuote(string author);
 
-    string FormatQuote(Quote quote);
+    string FormatQuote(QuoteDTO quote);
+
+    // string FormatQuote(Quote quote); Task<Quote?> GetQuote(string uuid);
+    // // QuoteResponse AddQuote(CreateQuote quote);
+    // Task<Quote> AddQuote(CreateQuote quote);
+    //
+    // Task<List<Quote>> GetAuthorQuote(string author);
+    //
+    // string FormatQuote(Quote quote);
 }

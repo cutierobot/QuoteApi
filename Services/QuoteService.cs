@@ -19,30 +19,47 @@ public class QuoteService: IQuoteService
         _context = context;
     }
     
-    public async Task<Quote?> GetQuote(string uuid)
+    // public async Task<Quote?> GetQuote(string uuid)
+    public async Task<QuoteDTO?> GetQuote(string uuid)
     {
         // _context.SaveChanges();
         // return _context.Quotes.Where(quote => quote.Uuid == "749160D8-F84F-48BD-B600-7B7E2F0778C1").Single();
         // return _context.Quotes.Where(quote => quote.Uuid == uuid).Single();
         try
         {
-            return await _context.Quotes.FirstAsync(quote => quote.Uuid == uuid);
+            // return await _context.Quotes.FirstAsync(quote => quote.Uuid == uuid);
+            
+            var result = await _context.Quotes.FirstAsync(quote => quote.Uuid == uuid);
+            return new QuoteDTO
+            {
+                Uuid = result.Uuid,
+                QuoteText = result.QuoteText,
+                Author = result.Author,
+                Category = result.Category,
+                DateOfQuote = result.DateOfQuote
+            };
         }
         catch (InvalidOperationException invalidException)
         {
             Console.WriteLine(invalidException);
-            // throw new InvalidOperationException("Logfile cannot be read-only", invalidException);
-            // throw new InvalidOperationException("UUID provided is either null or does not exist in the table");
             return null;
-            throw;
         }
     }
 
-    public async Task<List<Quote>> GetAuthorQuote(string author)
+    public async Task<List<QuoteDTO>> GetAuthorQuote(string author)
     {
         try
         {
-            return await _context.Quotes.Where(e => e.Author == author).ToListAsync();
+            // return await _context.Quotes.Where(e => e.Author == author).ToListAsync();
+            return await _context.Quotes.Where(e => e.Author == author)
+                .Select(quote => new QuoteDTO
+                {
+                    Uuid = quote.Uuid,
+                    QuoteText = quote.QuoteText,
+                    Author = quote.Author,
+                    Category = quote.Category,
+                    DateOfQuote = quote.DateOfQuote
+                }).ToListAsync();
         }
         catch (InvalidOperationException invalidException)
         {
@@ -51,7 +68,7 @@ public class QuoteService: IQuoteService
         }
     }
 
-    public async Task<Quote> AddQuote(CreateQuote newQuote)
+    public async Task<QuoteDTO> AddQuote(CreateQuote newQuote)
     {
         try
         {
@@ -68,20 +85,26 @@ public class QuoteService: IQuoteService
             await _context.SaveChangesAsync();
             Console.WriteLine("Successfully added quote");
             
-            return quote;
+            return new QuoteDTO
+            {
+                Uuid = quote.Uuid,
+                QuoteText = quote.QuoteText,
+                Author = quote.Author,
+                Category = quote.Category,
+                DateOfQuote = quote.DateOfQuote
+            };
         }
         catch (InvalidOperationException invalidException)
         {
             Console.WriteLine(invalidException);
             throw;
         }
-        // throw new NotImplementedException();
     }
 
     /**
      * Format the given Quote into "quote" - author [DD/MM/YYYY]
      */
-    public string FormatQuote(Quote quote)
+    public string FormatQuote(QuoteDTO quote)
     {
         string dateQuoteFormat;
         DateTime cake = new DateTime();
